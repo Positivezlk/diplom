@@ -91,6 +91,7 @@ function applyTheme() { document.documentElement.setAttribute('data-bs-theme', s
 themeBtn.onclick = async () => { store.theme = store.theme === 'dark' ? 'light' : 'dark'; applyTheme(); await api(`/theme?theme=${store.theme}`, { method: 'POST' }); };
 window.addEventListener('hashchange', route);
 bootstrap();
+
 const store = {
   theme: localStorage.getItem('theme') || 'light',
   user: JSON.parse(localStorage.getItem('user') || '{"name":"Alex","email":"alex@mail.com"}'),
