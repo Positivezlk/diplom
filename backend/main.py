@@ -9,6 +9,22 @@ from .storage import load_db, save_db
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
+
+
+
+
+
+
+
+
+
+from .models import LoginRequest, RegisterRequest, TaskCreate, Task, User
+from .storage import load_db, save_db
+
+
+
+
+
 app = FastAPI(title='Smart Task Manager API')
 app.add_middleware(
     CORSMiddleware,
@@ -17,16 +33,6 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-
-
-
-@app.middleware('http')
-async def disable_cache(request, call_next):
-    response = await call_next(request)
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
 
 
 @app.get('/api/health')
@@ -123,25 +129,14 @@ def get_theme():
 
 
 
-@app.get('/styles.css')
-def styles_file():
-    return FileResponse(ROOT_DIR / 'styles.css')
 
 
-@app.get('/auth.js')
-def auth_js_file():
-    return FileResponse(ROOT_DIR / 'auth.js')
-
-
-@app.get('/app.js')
-def app_js_file():
-    return FileResponse(ROOT_DIR / 'app.js')
-
-
-app.mount('/static', StaticFiles(directory=ROOT_DIR, html=False), name='static')
+app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
 
 
 @app.get('/')
+
+
 def root():
     return FileResponse(ROOT_DIR / 'auth.html')
 
@@ -149,3 +144,34 @@ def root():
 @app.get('/app')
 def app_page():
     return FileResponse(ROOT_DIR / 'index.html')
+
+
+
+
+
+def index():
+    return FileResponse(ROOT_DIR / 'index.html')
+
+app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
+
+
+@app.get('/')
+def index():
+    return FileResponse(ROOT_DIR / 'index.html')
+
+app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
+
+app.mount('/assets', StaticFiles(directory='.', html=False), name='assets')
+
+
+
+@app.get('/')
+def index():
+
+    return FileResponse(ROOT_DIR / 'index.html')
+
+    return FileResponse('index.html')
+
+
+
+
