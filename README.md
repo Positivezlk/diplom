@@ -1,0 +1,27 @@
+## Run
+
+Install dependencies:
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+Start server (recommended for local browser access):
+
+```bash
+uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Alternative import path:
+
+```bash
+uvicorn src.backend.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Open in browser:
+
+- `http://127.0.0.1:8000/`
+- `http://localhost:8000/`
+
+> `0.0.0.0` is a bind address for the server, not a client URL for browser navigation.
+> If you run with `--host 0.0.0.0`, still open `http://127.0.0.1:8000/` (or `localhost`).
