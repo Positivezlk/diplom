@@ -1,0 +1,133 @@
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+from .models import LoginRequest, RegisterRequest, Task, TaskCreate, User
+from .storage import load_db, save_db
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+PAGES_DIR = ROOT_DIR / "frontend" / "pages"
+STATIC_DIR = ROOT_DIR / "frontend" / "static"
+
+app = FastAPI(title='Smart Task Manager API')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
+@app.get('/api/health')
+def health():
+    return {'ok': True}
+
+@app.post('/api/auth/login', response_model=User)
+def login(payload: LoginRequest):
+    db = load_db()
+    if len(payload.password) < 6:
+        raise HTTPException(status_code=400, detail='Пароль слишком короткий')
+    db['user'] = {'name': db.get('user', {}).get('name', 'User'), 'email': payload.email}
+    save_db(db)
+    return db['user']
+
+@app.post('/api/auth/register', response_model=User)
+def register(payload: RegisterRequest):
+    if payload.password != payload.confirm_password:
+        raise HTTPException(status_code=400, detail='Пароли не совпадают')
+    db = load_db()
+    db['user'] = {'name': payload.name, 'email': payload.email}
+    save_db(db)
+    return db['user']
+
+@app.get('/api/profile', response_model=User)
+def get_profile():
+    return load_db()['user']
+
+@app.get('/api/tasks', response_model=list[Task])
+def list_tasks():
+    return load_db()['tasks']
+
+@app.post('/api/tasks', response_model=Task)
+def create_task(payload: TaskCreate):
+    db = load_db()
+    task = payload.model_dump()
+    task['id'] = str(uuid4())
+    db['tasks'].insert(0, task)
+    save_db(db)
+    return task
+
+@app.patch('/api/tasks/{task_id}/status', response_model=Task)
+def update_status(task_id: str, status: str):
+    db = load_db()
+    for t in db['tasks']:
+        if t['id'] == task_id:
+            t['status'] = status
+            save_db(db)
+            return t
+    raise HTTPException(status_code=404, detail='Task not found')
+
+@app.delete('/api/tasks/{task_id}')
+def delete_task(task_id: str):
+    db = load_db()
+    db['tasks'] = [t for t in db['tasks'] if t['id'] != task_id]
+    save_db(db)
+    return {'ok': True}
+
+@app.post('/api/theme')
+def set_theme(theme: str):
+    db = load_db()
+    db['theme'] = theme
+    save_db(db)
+    return {'theme': theme}
+
+@app.get('/api/theme')
+def get_theme():
+    return {'theme': load_db().get('theme', 'light')}
+
+
+@app.get('/static/styles.css')
+def static_styles_alias():
+    return FileResponse(STATIC_DIR / 'css' / 'styles.css')
+
+
+@app.get('/static/auth.js')
+def static_auth_alias():
+    return FileResponse(STATIC_DIR / 'js' / 'auth.js')
+
+
+@app.get('/static/app.js')
+def static_app_alias():
+    return FileResponse(STATIC_DIR / 'js' / 'app.js')
+
+
+
+@app.get('/frontend/static/css/styles.css')
+def frontend_static_styles_alias():
+    return FileResponse(STATIC_DIR / 'css' / 'styles.css')
+
+
+@app.get('/frontend/static/js/auth.js')
+def frontend_static_auth_alias():
+    return FileResponse(STATIC_DIR / 'js' / 'auth.js')
+
+
+@app.get('/frontend/static/js/app.js')
+def frontend_static_app_alias():
+    return FileResponse(STATIC_DIR / 'js' / 'app.js')
+
+
+app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
+app.mount('/frontend/static', StaticFiles(directory=STATIC_DIR), name='frontend_static')
+
+@app.get('/')
+def root():
+    return FileResponse(PAGES_DIR / 'auth.html')
+
+@app.get('/app')
+def app_page():
+    return FileResponse(PAGES_DIR / 'index.html')
