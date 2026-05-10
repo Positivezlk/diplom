@@ -1,17 +1,29 @@
-from pathlib import Path
 from uuid import uuid4
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-
-from .models import LoginRequest, RegisterRequest, Task, TaskCreate, User
+from fastapi.responses import FileResponse
+from pathlib import Path
+from .models import LoginRequest, RegisterRequest, TaskCreate, Task, User
 from .storage import load_db, save_db
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-PAGES_DIR = ROOT_DIR / "frontend" / "pages"
-STATIC_DIR = ROOT_DIR / "frontend" / "static"
+
+
+
+
+
+
+
+
+
+
+from .models import LoginRequest, RegisterRequest, TaskCreate, Task, User
+from .storage import load_db, save_db
+
+
+
+
 
 app = FastAPI(title='Smart Task Manager API')
 app.add_middleware(
@@ -22,9 +34,11 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+
 @app.get('/api/health')
 def health():
     return {'ok': True}
+
 
 @app.post('/api/auth/login', response_model=User)
 def login(payload: LoginRequest):
@@ -35,6 +49,7 @@ def login(payload: LoginRequest):
     save_db(db)
     return db['user']
 
+
 @app.post('/api/auth/register', response_model=User)
 def register(payload: RegisterRequest):
     if payload.password != payload.confirm_password:
@@ -44,13 +59,18 @@ def register(payload: RegisterRequest):
     save_db(db)
     return db['user']
 
+
 @app.get('/api/profile', response_model=User)
 def get_profile():
-    return load_db()['user']
+    db = load_db()
+    return db['user']
+
 
 @app.get('/api/tasks', response_model=list[Task])
 def list_tasks():
-    return load_db()['tasks']
+    db = load_db()
+    return db['tasks']
+
 
 @app.post('/api/tasks', response_model=Task)
 def create_task(payload: TaskCreate):
@@ -60,6 +80,20 @@ def create_task(payload: TaskCreate):
     db['tasks'].insert(0, task)
     save_db(db)
     return task
+
+
+@app.patch('/api/tasks/{task_id}', response_model=Task)
+def update_task(task_id: str, payload: TaskCreate):
+    db = load_db()
+    for i, t in enumerate(db['tasks']):
+        if t['id'] == task_id:
+            updated = payload.model_dump()
+            updated['id'] = task_id
+            db['tasks'][i] = updated
+            save_db(db)
+            return updated
+    raise HTTPException(status_code=404, detail='Task not found')
+
 
 @app.patch('/api/tasks/{task_id}/status', response_model=Task)
 def update_status(task_id: str, status: str):
@@ -71,12 +105,14 @@ def update_status(task_id: str, status: str):
             return t
     raise HTTPException(status_code=404, detail='Task not found')
 
+
 @app.delete('/api/tasks/{task_id}')
 def delete_task(task_id: str):
     db = load_db()
     db['tasks'] = [t for t in db['tasks'] if t['id'] != task_id]
     save_db(db)
     return {'ok': True}
+
 
 @app.post('/api/theme')
 def set_theme(theme: str):
@@ -85,32 +121,57 @@ def set_theme(theme: str):
     save_db(db)
     return {'theme': theme}
 
+
 @app.get('/api/theme')
 def get_theme():
-    return {'theme': load_db().get('theme', 'light')}
+    db = load_db()
+    return {'theme': db.get('theme', 'light')}
 
 
-@app.get('/static/styles.css')
-def static_styles_alias():
-    return FileResponse(STATIC_DIR / 'css' / 'styles.css')
 
 
-@app.get('/static/auth.js')
-def static_auth_alias():
-    return FileResponse(STATIC_DIR / 'js' / 'auth.js')
 
+app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
 
-@app.get('/static/app.js')
-def static_app_alias():
-    return FileResponse(STATIC_DIR / 'js' / 'app.js')
-
-
-app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
 
 @app.get('/')
+
+
 def root():
-    return FileResponse(PAGES_DIR / 'auth.html')
+    return FileResponse(ROOT_DIR / 'auth.html')
+
 
 @app.get('/app')
 def app_page():
-    return FileResponse(PAGES_DIR / 'index.html')
+    return FileResponse(ROOT_DIR / 'index.html')
+
+
+
+
+
+def index():
+    return FileResponse(ROOT_DIR / 'index.html')
+
+app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
+
+
+@app.get('/')
+def index():
+    return FileResponse(ROOT_DIR / 'index.html')
+
+app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
+
+app.mount('/assets', StaticFiles(directory='.', html=False), name='assets')
+
+
+
+@app.get('/')
+def index():
+
+    return FileResponse(ROOT_DIR / 'index.html')
+
+    return FileResponse('index.html')
+
+
+
+
