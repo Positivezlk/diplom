@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-DB_FILE = Path(__file__).resolve().parent.parent / 'data' / 'db.json'
+DB_FILE = Path(__file__).resolve().parent / 'db.json'
 
 
 def load_db() -> dict[str, Any]:
