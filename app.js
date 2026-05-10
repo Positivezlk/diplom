@@ -5,6 +5,7 @@ const view = document.getElementById('view');
 const themeBtn = document.getElementById('themeBtn');
 
 
+
 const API = '/api';
 const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
 
@@ -55,14 +56,12 @@ async function bootstrap() {
 
 function route() {
 
-
-
-
   const path = location.hash.replace('#', '') || '/dashboard';
   if (!store.isAuth) {
     location.replace('/auth.html');
     return;
   }
+
 
 
 
@@ -88,6 +87,7 @@ function route() {
   if (path === '/settings') return renderSettings();
   return render404();
 }
+
 
 
 
@@ -148,6 +148,7 @@ function renderTasks() {
   };
 
 
+
   ['q', 'fStatus', 'fPriority'].forEach(id => document.getElementById(id).addEventListener('input', renderList));
   taskForm.addEventListener('submit', async (e) => {
 
@@ -159,6 +160,7 @@ function renderTasks() {
     store.tasks.unshift(created);
     taskForm.reset();
     renderList();
+
 
   });
   mic.addEventListener('click', () => { voiceText.value = 'Создай задачу закончить проект завтра'; voiceResp.innerText = 'Запись...'; setTimeout(() => voiceResp.innerText = 'Задача успешно создана (mock)', 700); });
@@ -193,6 +195,7 @@ bootstrap();
 
 
 
+
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="logout()">Logout</button></div>`;
 
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="location.hash='/login'">Logout</button></div>`;
@@ -213,11 +216,13 @@ bootstrap();
 
 
 
+
 window.logout = () => {
   store.isAuth = false;
   localStorage.removeItem('isAuth');
   location.replace('/auth.html');
 };
+
 
 
 
