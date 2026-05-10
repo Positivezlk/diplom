@@ -4,9 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-
-
-
 from pathlib import Path
 from .models import LoginRequest, RegisterRequest, TaskCreate, Task, User
 from .storage import load_db, save_db
@@ -18,8 +15,10 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 
+
 from .models import LoginRequest, RegisterRequest, TaskCreate, Task, User
 from .storage import load_db, save_db
+
 
 
 
@@ -126,7 +125,7 @@ def get_theme():
     return {'theme': db.get('theme', 'light')}
 
 
-
+n
 app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
 
 
@@ -139,6 +138,7 @@ def root():
 @app.get('/app')
 def app_page():
     return FileResponse(ROOT_DIR / 'index.html')
+
 
 
 def index():
@@ -163,6 +163,7 @@ def index():
     return FileResponse(ROOT_DIR / 'index.html')
 
     return FileResponse('index.html')
+
 
 
 

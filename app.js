@@ -1,6 +1,12 @@
 
 const API = '/api';
 const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
+const view = document.getElementById('view');
+const themeBtn = document.getElementById('themeBtn');
+
+
+const API = '/api';
+const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
 
 
 const API = '/api';
@@ -22,6 +28,7 @@ const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, 
 
 const view = document.getElementById('view');
 
+
 async function api(path, options = {}) {
   const r = await fetch(`${API}${path}`, { headers: { 'Content-Type': 'application/json' }, ...options });
   if (!r.ok) throw new Error((await r.json()).detail || 'API error');
@@ -29,6 +36,12 @@ async function api(path, options = {}) {
 }
 
 async function bootstrap() {
+
+  if (!store.isAuth) {
+    location.replace('/auth.html');
+    return;
+  }
+
   try {
     store.tasks = await api('/tasks');
     store.user = await api('/profile');
@@ -44,11 +57,13 @@ function route() {
 
 
 
+
   const path = location.hash.replace('#', '') || '/dashboard';
   if (!store.isAuth) {
     location.replace('/auth.html');
     return;
   }
+
 
 
 
@@ -77,6 +92,7 @@ function route() {
 
 
 
+
 function renderLogin() {
   view.innerHTML = `<div class="row justify-content-center"><div class="col-12 col-md-5"><div class="card card-soft p-4"><h3>Вход</h3><form id="loginForm" class="d-grid gap-2"><input id="email" type="email" class="form-control" required placeholder="Email"><input id="password" type="password" class="form-control" required minlength="6" placeholder="Пароль"><button class="btn btn-primary">Войти</button></form><button class="btn btn-outline-danger mt-2">Google (mock)</button><a href="#/register" class="mt-3 d-inline-block">Регистрация</a></div></div></div>`;
 
@@ -96,6 +112,7 @@ function renderRegister() {
 }
 
 
+
 function renderDashboard() {
   const total = store.tasks.length, done = store.tasks.filter(t => t.status === 'done').length, overdue = store.tasks.filter(t => t.status === 'overdue').length, progress = store.tasks.filter(t => t.status === 'in_progress').length;
   view.innerHTML = `<div class="row g-3">${[['Всего задач', total], ['Выполнено', done], ['Просрочено', overdue], ['В процессе', progress]].map(s => `<div class="col-6 col-xl-3"><div class="card card-soft p-3"><small class="text-secondary">${s[0]}</small><div class="display-6">${s[1]}</div></div></div>`).join('')}<div class="col-12"><div class="card card-soft p-3">Ближайшие задачи, выполненные задачи и график продуктивности (mock).</div></div></div><button class="btn btn-primary fab" onclick="location.hash='/tasks'">+</button>`;
@@ -107,6 +124,19 @@ function renderTasks() {
   <div id="taskList" class="row g-3"></div>
   <div class="card card-soft p-3 mt-3"><b>Голосовой помощник (mock)</b><div class="mt-2 d-flex gap-2"><button class="btn btn-danger" id="mic">🎙️</button><input class="form-control" id="voiceText" placeholder="Скажи: создай задачу..."/><button class="btn btn-outline-primary" id="voiceSend">Отправить</button></div><div class="small text-secondary mt-2" id="voiceResp">Ожидание команды...</div></div>`;
 
+
+  const taskForm = document.getElementById('taskForm');
+  const title = document.getElementById('title');
+  const deadline = document.getElementById('deadline');
+  const priority = document.getElementById('priority');
+  const category = document.getElementById('category');
+  const desc = document.getElementById('desc');
+  const mic = document.getElementById('mic');
+  const voiceText = document.getElementById('voiceText');
+  const voiceResp = document.getElementById('voiceResp');
+  const voiceSend = document.getElementById('voiceSend');
+
+
   const renderList = () => {
     const q = document.getElementById('q')?.value?.toLowerCase() || '';
     const fs = document.getElementById('fStatus')?.value || '';
@@ -117,16 +147,27 @@ function renderTasks() {
     document.getElementById('taskList').innerHTML = list.length ? list.map(t => `<div class="col-12 col-lg-6"><div class="card card-soft p-3"><div class="d-flex justify-content-between"><h5>${t.title}</h5><button class="btn btn-sm btn-outline-danger" onclick="delTask('${t.id}')">Удалить</button></div><p>${t.description || ''}</p><div class="d-flex gap-2 flex-wrap"><span class="badge text-bg-secondary">${t.category || 'General'}</span><span class="badge text-bg-info">${t.priority}</span><span class="badge text-bg-dark">${t.deadline}</span><select class="form-select form-select-sm w-auto" onchange="setStatus('${t.id}',this.value)"><option ${t.status === 'todo' ? 'selected' : ''}>todo</option><option ${t.status === 'in_progress' ? 'selected' : ''}>in_progress</option><option ${t.status === 'done' ? 'selected' : ''}>done</option><option ${t.status === 'overdue' ? 'selected' : ''}>overdue</option></select></div></div></div>`).join('') : '<div class="col-12"><div class="card card-soft p-3">Пусто: задач нет</div></div>';
   };
 
+
+  ['q', 'fStatus', 'fPriority'].forEach(id => document.getElementById(id).addEventListener('input', renderList));
+  taskForm.addEventListener('submit', async (e) => {
+
   ['q', 'fStatus', 'fPriority'].forEach(id => document.getElementById(id).oninput = renderList);
   taskForm.onsubmit = async (e) => {
+
     e.preventDefault();
     const created = await api('/tasks', { method: 'POST', body: JSON.stringify({ title: title.value, description: desc.value, deadline: deadline.value, priority: priority.value, category: category.value || 'General', status: 'todo' }) });
     store.tasks.unshift(created);
     taskForm.reset();
     renderList();
+
+  });
+  mic.addEventListener('click', () => { voiceText.value = 'Создай задачу закончить проект завтра'; voiceResp.innerText = 'Запись...'; setTimeout(() => voiceResp.innerText = 'Задача успешно создана (mock)', 700); });
+  voiceSend.addEventListener('click', () => { voiceResp.innerText = 'Задача успешно создана (mock)'; });
+
   };
   mic.onclick = () => { voiceText.value = 'Создай задачу закончить проект завтра'; voiceResp.innerText = 'Запись...'; setTimeout(() => voiceResp.innerText = 'Задача успешно создана (mock)', 700); };
   voiceSend.onclick = () => voiceResp.innerText = 'Задача успешно создана (mock)';
+
   renderList();
 }
 
@@ -135,6 +176,19 @@ window.setStatus = async (id, status) => { const updated = await api(`/tasks/${i
 
 function renderProfile() {
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="logout()">Logout</button></div>`;
+
+}
+function renderSettings() {
+  view.innerHTML = `<div class="card card-soft p-4"><h4>Настройки</h4><div class="form-check form-switch my-3"><input class="form-check-input" type="checkbox" id="t" ${store.theme === 'dark' ? 'checked' : ''}><label class="form-check-label" for="t">Тёмная тема</label></div><div class="mb-3"><label class="form-label">Язык</label><select class="form-select"><option selected>Русский</option><option>English</option></select></div><div class="mb-3"><label class="form-label">Уведомления</label><select class="form-select"><option>Включены</option><option>Выключены</option></select></div><div><label class="form-label">Голосовой ассистент</label><select class="form-select"><option>Стандартный</option><option>Минимальный</option></select></div></div>`;
+  document.getElementById('t').addEventListener('change', async (e) => { store.theme = e.target.checked ? 'dark' : 'light'; applyTheme(); await api(`/theme?theme=${store.theme}`, { method: 'POST' }); });
+}
+function render404() { view.innerHTML = `<div class="card card-soft p-5 text-center"><h1>404</h1><a href="#/dashboard" class="btn btn-primary">На главную</a></div>`; }
+function applyTheme() { document.documentElement.setAttribute('data-bs-theme', store.theme); themeBtn.textContent = store.theme === 'dark' ? '☀️' : '🌙'; }
+themeBtn.addEventListener('click', async () => { store.theme = store.theme === 'dark' ? 'light' : 'dark'; applyTheme(); await api(`/theme?theme=${store.theme}`, { method: 'POST' }); });
+window.addEventListener('hashchange', route);
+bootstrap();
+
+
 
 
 
@@ -154,6 +208,7 @@ function applyTheme() { document.documentElement.setAttribute('data-bs-theme', s
 themeBtn.onclick = async () => { store.theme = store.theme === 'dark' ? 'light' : 'dark'; applyTheme(); await api(`/theme?theme=${store.theme}`, { method: 'POST' }); };
 window.addEventListener('hashchange', route);
 bootstrap();
+
 
 
 

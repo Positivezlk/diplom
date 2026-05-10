@@ -14,7 +14,11 @@ if (localStorage.getItem('isAuth') === '1') {
 
   location.replace('/app#/dashboard');
 
+
+  location.replace('/app#/dashboard');
+
   location.replace('/#/dashboard');
+
 
 
 }
@@ -34,13 +38,17 @@ const regConfirm = document.getElementById('regConfirm');
 switchMode.addEventListener('click', () => {
 
 
+
 switchMode.onclick = () => {
+
 
   registerMode = !registerMode;
   loginForm.classList.toggle('d-none', registerMode);
   registerForm.classList.toggle('d-none', !registerMode);
   authTitle.textContent = registerMode ? 'Регистрация' : 'Вход';
   switchMode.textContent = registerMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+
+
 
 });
 
@@ -77,6 +85,7 @@ registerForm.addEventListener('submit', async (e) => {
   }
 });
 
+
 };
 
 loginForm.onsubmit = async (e) => {
@@ -104,4 +113,5 @@ registerForm.onsubmit = async (e) => {
 
   } catch (err) { alert(err.message); }
 };
+
 
