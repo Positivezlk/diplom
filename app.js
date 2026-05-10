@@ -6,6 +6,7 @@ const themeBtn = document.getElementById('themeBtn');
 
 
 
+
 const API = '/api';
 const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
 
@@ -66,6 +67,7 @@ function route() {
 
 
 
+
   const path = location.hash.replace('#', '') || '/login';
 
   const publicRoutes = ['/login', '/register'];
@@ -81,12 +83,14 @@ function route() {
   if (path === '/login') return renderLogin();
   if (path === '/register') return renderRegister();
 
+
   if (path === '/dashboard') return renderDashboard();
   if (path === '/tasks') return renderTasks();
   if (path === '/profile') return renderProfile();
   if (path === '/settings') return renderSettings();
   return render404();
 }
+
 
 
 
@@ -113,6 +117,7 @@ function renderRegister() {
 
 
 
+
 function renderDashboard() {
   const total = store.tasks.length, done = store.tasks.filter(t => t.status === 'done').length, overdue = store.tasks.filter(t => t.status === 'overdue').length, progress = store.tasks.filter(t => t.status === 'in_progress').length;
   view.innerHTML = `<div class="row g-3">${[['Всего задач', total], ['Выполнено', done], ['Просрочено', overdue], ['В процессе', progress]].map(s => `<div class="col-6 col-xl-3"><div class="card card-soft p-3"><small class="text-secondary">${s[0]}</small><div class="display-6">${s[1]}</div></div></div>`).join('')}<div class="col-12"><div class="card card-soft p-3">Ближайшие задачи, выполненные задачи и график продуктивности (mock).</div></div></div><button class="btn btn-primary fab" onclick="location.hash='/tasks'">+</button>`;
@@ -123,6 +128,7 @@ function renderTasks() {
   <div class="row g-2 mb-3"><div class="col-12 col-md-4"><input id="q" class="form-control" placeholder="Поиск"></div><div class="col-6 col-md-3"><select id="fStatus" class="form-select"><option value="">Статус: все</option><option>todo</option><option>in_progress</option><option>done</option><option>overdue</option></select></div><div class="col-6 col-md-3"><select id="fPriority" class="form-select"><option value="">Приоритет: все</option><option>low</option><option>medium</option><option>high</option></select></div></div>
   <div id="taskList" class="row g-3"></div>
   <div class="card card-soft p-3 mt-3"><b>Голосовой помощник (mock)</b><div class="mt-2 d-flex gap-2"><button class="btn btn-danger" id="mic">🎙️</button><input class="form-control" id="voiceText" placeholder="Скажи: создай задачу..."/><button class="btn btn-outline-primary" id="voiceSend">Отправить</button></div><div class="small text-secondary mt-2" id="voiceResp">Ожидание команды...</div></div>`;
+
 
 
   const taskForm = document.getElementById('taskForm');
@@ -149,6 +155,7 @@ function renderTasks() {
 
 
 
+
   ['q', 'fStatus', 'fPriority'].forEach(id => document.getElementById(id).addEventListener('input', renderList));
   taskForm.addEventListener('submit', async (e) => {
 
@@ -160,6 +167,7 @@ function renderTasks() {
     store.tasks.unshift(created);
     taskForm.reset();
     renderList();
+
 
 
   });
@@ -196,6 +204,7 @@ bootstrap();
 
 
 
+
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="logout()">Logout</button></div>`;
 
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="location.hash='/login'">Logout</button></div>`;
@@ -217,11 +226,13 @@ bootstrap();
 
 
 
+
 window.logout = () => {
   store.isAuth = false;
   localStorage.removeItem('isAuth');
   location.replace('/auth.html');
 };
+
 
 
 

@@ -17,6 +17,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 
+
 from .models import LoginRequest, RegisterRequest, TaskCreate, Task, User
 from .storage import load_db, save_db
 
@@ -125,6 +126,7 @@ def set_theme(theme: str):
 def get_theme():
     db = load_db()
     return {'theme': db.get('theme', 'light')}
+
 
 
 

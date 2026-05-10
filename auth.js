@@ -9,6 +9,7 @@ async function api(path, options = {}) {
 }
 
 
+
 if (localStorage.getItem('isAuth') === '1') {
 
   location.replace('/app#/dashboard');
@@ -31,6 +32,7 @@ const switchMode = document.getElementById('switchMode');
 const authTitle = document.getElementById('authTitle');
 
 
+
 const loginEmail = document.getElementById('loginEmail');
 const loginPassword = document.getElementById('loginPassword');
 const regName = document.getElementById('regName');
@@ -45,6 +47,7 @@ switchMode.addEventListener('click', () => {
 switchMode.onclick = () => {
 
 
+
   registerMode = !registerMode;
   loginForm.classList.toggle('d-none', registerMode);
   registerForm.classList.toggle('d-none', !registerMode);
@@ -56,6 +59,7 @@ switchMode.onclick = () => {
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
+
 
     await api('/auth/login', {
       method: 'POST',
