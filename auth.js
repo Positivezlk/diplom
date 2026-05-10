@@ -2,11 +2,13 @@ const API = '/api';
 let registerMode = false;
 
 
+
 async function api(path, options = {}) {
   const r = await fetch(`${API}${path}`, { headers: { 'Content-Type': 'application/json' }, ...options });
   if (!r.ok) throw new Error((await r.json()).detail || 'API error');
   return r.json();
 }
+
 
 
 
@@ -26,10 +28,12 @@ if (localStorage.getItem('isAuth') === '1') {
 
 }
 
+
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
 const switchMode = document.getElementById('switchMode');
 const authTitle = document.getElementById('authTitle');
+
 
 
 
@@ -45,6 +49,7 @@ switchMode.addEventListener('click', () => {
 
 
 switchMode.onclick = () => {
+
 
 
 
@@ -120,5 +125,4 @@ registerForm.onsubmit = async (e) => {
 
   } catch (err) { alert(err.message); }
 };
-
 

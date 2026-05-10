@@ -7,6 +7,7 @@ const themeBtn = document.getElementById('themeBtn');
 
 
 
+
 const API = '/api';
 const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
 
@@ -29,6 +30,7 @@ const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, 
 
 
 const view = document.getElementById('view');
+
 
 
 async function api(path, options = {}) {
@@ -68,6 +70,7 @@ function route() {
 
 
 
+
   const path = location.hash.replace('#', '') || '/login';
 
   const publicRoutes = ['/login', '/register'];
@@ -90,6 +93,7 @@ function route() {
   if (path === '/settings') return renderSettings();
   return render404();
 }
+
 
 
 
@@ -130,7 +134,6 @@ function renderTasks() {
   <div class="card card-soft p-3 mt-3"><b>Голосовой помощник (mock)</b><div class="mt-2 d-flex gap-2"><button class="btn btn-danger" id="mic">🎙️</button><input class="form-control" id="voiceText" placeholder="Скажи: создай задачу..."/><button class="btn btn-outline-primary" id="voiceSend">Отправить</button></div><div class="small text-secondary mt-2" id="voiceResp">Ожидание команды...</div></div>`;
 
 
-
   const taskForm = document.getElementById('taskForm');
   const title = document.getElementById('title');
   const deadline = document.getElementById('deadline');
@@ -156,6 +159,7 @@ function renderTasks() {
 
 
 
+
   ['q', 'fStatus', 'fPriority'].forEach(id => document.getElementById(id).addEventListener('input', renderList));
   taskForm.addEventListener('submit', async (e) => {
 
@@ -170,6 +174,7 @@ function renderTasks() {
 
 
 
+
   });
   mic.addEventListener('click', () => { voiceText.value = 'Создай задачу закончить проект завтра'; voiceResp.innerText = 'Запись...'; setTimeout(() => voiceResp.innerText = 'Задача успешно создана (mock)', 700); });
   voiceSend.addEventListener('click', () => { voiceResp.innerText = 'Задача успешно создана (mock)'; });
@@ -177,6 +182,7 @@ function renderTasks() {
   };
   mic.onclick = () => { voiceText.value = 'Создай задачу закончить проект завтра'; voiceResp.innerText = 'Запись...'; setTimeout(() => voiceResp.innerText = 'Задача успешно создана (mock)', 700); };
   voiceSend.onclick = () => voiceResp.innerText = 'Задача успешно создана (mock)';
+
 
   renderList();
 }
@@ -197,6 +203,7 @@ function applyTheme() { document.documentElement.setAttribute('data-bs-theme', s
 themeBtn.addEventListener('click', async () => { store.theme = store.theme === 'dark' ? 'light' : 'dark'; applyTheme(); await api(`/theme?theme=${store.theme}`, { method: 'POST' }); });
 window.addEventListener('hashchange', route);
 bootstrap();
+
 
 
 
@@ -232,6 +239,7 @@ window.logout = () => {
   localStorage.removeItem('isAuth');
   location.replace('/auth.html');
 };
+
 
 
 
@@ -298,5 +306,4 @@ themeBtn.onclick=()=>{store.theme=store.theme==='dark'?'light':'dark'; applyThem
 applyTheme();
 window.addEventListener('hashchange', route);
 route();
-
 
