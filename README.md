@@ -15,6 +15,7 @@ Flow:
 1. `/` always opens `auth.html`.
 2. After successful login/register, redirect goes to `/app#/dashboard`.
 
+
 Install dependencies:
 
 ```bash
@@ -55,5 +56,4 @@ uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Then open `http://127.0.0.1:8000/`.
-
 
