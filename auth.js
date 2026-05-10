@@ -1,54 +1,128 @@
 const API = '/api';
-let isRegister = false;
+let registerMode = false;
 
-if (localStorage.getItem('isAuth') === '1') location.replace('/app#/dashboard');
 
-const form = document.getElementById('authForm');
-const title = document.getElementById('title');
-const nameInput = document.getElementById('name');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const confirmInput = document.getElementById('confirm');
-const submitBtn = document.getElementById('submitBtn');
-const toggle = document.getElementById('toggleRegister');
 
-async function api(path, body) {
-  const res = await fetch(`${API}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error((await res.json()).detail || 'Ошибка');
-  return res.json();
+async function api(path, options = {}) {
+  const r = await fetch(`${API}${path}`, { headers: { 'Content-Type': 'application/json' }, ...options });
+  if (!r.ok) throw new Error((await r.json()).detail || 'API error');
+  return r.json();
 }
 
-toggle.addEventListener('click', () => {
-  isRegister = !isRegister;
-  title.textContent = isRegister ? 'Регистрация' : 'Вход';
-  submitBtn.textContent = isRegister ? 'Зарегистрироваться' : 'Войти';
-  toggle.textContent = isRegister ? 'Уже есть аккаунт? Вход' : 'Регистрация';
-  nameInput.classList.toggle('d-none', !isRegister);
-  confirmInput.classList.toggle('d-none', !isRegister);
-  nameInput.required = isRegister;
-  confirmInput.required = isRegister;
+
+
+
+if (localStorage.getItem('isAuth') === '1') {
+
+  location.replace('/app#/dashboard');
+
+
+  location.replace('/app#/dashboard');
+
+
+  location.replace('/app#/dashboard');
+
+  location.replace('/#/dashboard');
+
+
+
+}
+
+
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const switchMode = document.getElementById('switchMode');
+const authTitle = document.getElementById('authTitle');
+
+
+
+
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const regName = document.getElementById('regName');
+const regEmail = document.getElementById('regEmail');
+const regPassword = document.getElementById('regPassword');
+const regConfirm = document.getElementById('regConfirm');
+
+switchMode.addEventListener('click', () => {
+
+
+
+switchMode.onclick = () => {
+
+
+
+
+  registerMode = !registerMode;
+  loginForm.classList.toggle('d-none', registerMode);
+  registerForm.classList.toggle('d-none', !registerMode);
+  authTitle.textContent = registerMode ? 'Регистрация' : 'Вход';
+  switchMode.textContent = registerMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+
 });
 
-form.addEventListener('submit', async (e) => {
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
-    if (isRegister) {
-      await api('/auth/register', {
-        name: nameInput.value,
-        email: emailInput.value,
-        password: passwordInput.value,
-        confirm_password: confirmInput.value,
-      });
-    } else {
-      await api('/auth/login', { email: emailInput.value, password: passwordInput.value });
-    }
+
+
+    await api('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: loginEmail.value, password: loginPassword.value }),
+    });
     localStorage.setItem('isAuth', '1');
     location.replace('/app#/dashboard');
   } catch (err) {
     alert(err.message);
   }
 });
+
+registerForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+
+    await api('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: regName.value,
+        email: regEmail.value,
+        password: regPassword.value,
+        confirm_password: regConfirm.value,
+      }),
+    });
+    localStorage.setItem('isAuth', '1');
+    location.replace('/app#/dashboard');
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+
+};
+
+loginForm.onsubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await api('/auth/login', { method: 'POST', body: JSON.stringify({ email: loginEmail.value, password: loginPassword.value }) });
+    localStorage.setItem('isAuth', '1');
+
+    location.replace('/app#/dashboard');
+
+    location.replace('/#/dashboard');
+
+  } catch (err) { alert(err.message); }
+};
+
+registerForm.onsubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await api('/auth/register', { method: 'POST', body: JSON.stringify({ name: regName.value, email: regEmail.value, password: regPassword.value, confirm_password: regConfirm.value }) });
+    localStorage.setItem('isAuth', '1');
+
+    location.replace('/app#/dashboard');
+
+    location.replace('/#/dashboard');
+
+  } catch (err) { alert(err.message); }
+};
+
