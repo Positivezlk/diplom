@@ -1,6 +1,10 @@
 
 const API = '/api';
+const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
+
+const API = '/api';
 const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [] };
+
 const view = document.getElementById('view');
 
 async function api(path, options = {}) {
@@ -23,6 +27,17 @@ async function bootstrap() {
 
 function route() {
   const path = location.hash.replace('#', '') || '/login';
+
+  const publicRoutes = ['/login', '/register'];
+  if (!store.isAuth && !publicRoutes.includes(path)) {
+    location.hash = '/login';
+    return;
+  }
+  if (store.isAuth && publicRoutes.includes(path)) {
+    location.hash = '/dashboard';
+    return;
+  }
+
   if (path === '/login') return renderLogin();
   if (path === '/register') return renderRegister();
   if (path === '/dashboard') return renderDashboard();
@@ -34,12 +49,20 @@ function route() {
 
 function renderLogin() {
   view.innerHTML = `<div class="row justify-content-center"><div class="col-12 col-md-5"><div class="card card-soft p-4"><h3>Вход</h3><form id="loginForm" class="d-grid gap-2"><input id="email" type="email" class="form-control" required placeholder="Email"><input id="password" type="password" class="form-control" required minlength="6" placeholder="Пароль"><button class="btn btn-primary">Войти</button></form><button class="btn btn-outline-danger mt-2">Google (mock)</button><a href="#/register" class="mt-3 d-inline-block">Регистрация</a></div></div></div>`;
+
+  loginForm.onsubmit = async (e) => { e.preventDefault(); try { store.user = await api('/auth/login', { method: 'POST', body: JSON.stringify({ email: email.value, password: password.value }) }); store.isAuth = true; localStorage.setItem('isAuth', '1'); location.hash = '/dashboard'; } catch (err) { alert(err.message); } };
+
   loginForm.onsubmit = async (e) => { e.preventDefault(); try { store.user = await api('/auth/login', { method: 'POST', body: JSON.stringify({ email: email.value, password: password.value }) }); location.hash = '/dashboard'; } catch (err) { alert(err.message); } };
+
 }
 
 function renderRegister() {
   view.innerHTML = `<div class="row justify-content-center"><div class="col-12 col-md-5"><div class="card card-soft p-4"><h3>Регистрация</h3><form id="regForm" class="d-grid gap-2"><input id="name" class="form-control" required placeholder="Имя"><input id="email" type="email" class="form-control" required placeholder="Email"><input type="password" id="p1" class="form-control" required placeholder="Пароль"><input type="password" id="p2" class="form-control" required placeholder="Повтор пароля"><button class="btn btn-primary">Создать</button></form><a href="#/login" class="mt-3 d-inline-block">На вход</a></div></div></div>`;
+
+  regForm.onsubmit = async (e) => { e.preventDefault(); try { store.user = await api('/auth/register', { method: 'POST', body: JSON.stringify({ name: name.value, email: email.value, password: p1.value, confirm_password: p2.value }) }); store.isAuth = true; localStorage.setItem('isAuth', '1'); location.hash = '/dashboard'; } catch (err) { alert(err.message); } };
+
   regForm.onsubmit = async (e) => { e.preventDefault(); try { store.user = await api('/auth/register', { method: 'POST', body: JSON.stringify({ name: name.value, email: email.value, password: p1.value, confirm_password: p2.value }) }); location.hash = '/login'; } catch (err) { alert(err.message); } };
+
 }
 
 function renderDashboard() {
@@ -80,7 +103,11 @@ window.delTask = async id => { await api(`/tasks/${id}`, { method: 'DELETE' }); 
 window.setStatus = async (id, status) => { const updated = await api(`/tasks/${id}/status?status=${status}`, { method: 'PATCH' }); const idx = store.tasks.findIndex(t => t.id === id); if (idx >= 0) store.tasks[idx] = updated; };
 
 function renderProfile() {
+
+  view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="logout()">Logout</button></div>`;
+
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="location.hash='/login'">Logout</button></div>`;
+
 }
 function renderSettings() {
   view.innerHTML = `<div class="card card-soft p-4"><h4>Настройки</h4><div class="form-check form-switch my-3"><input class="form-check-input" type="checkbox" id="t" ${store.theme === 'dark' ? 'checked' : ''}><label class="form-check-label" for="t">Тёмная тема</label></div><div class="mb-3"><label class="form-label">Язык</label><select class="form-select"><option selected>Русский</option><option>English</option></select></div><div class="mb-3"><label class="form-label">Уведомления</label><select class="form-select"><option>Включены</option><option>Выключены</option></select></div><div><label class="form-label">Голосовой ассистент</label><select class="form-select"><option>Стандартный</option><option>Минимальный</option></select></div></div>`;
@@ -91,6 +118,13 @@ function applyTheme() { document.documentElement.setAttribute('data-bs-theme', s
 themeBtn.onclick = async () => { store.theme = store.theme === 'dark' ? 'light' : 'dark'; applyTheme(); await api(`/theme?theme=${store.theme}`, { method: 'POST' }); };
 window.addEventListener('hashchange', route);
 bootstrap();
+
+
+window.logout = () => {
+  store.isAuth = false;
+  localStorage.removeItem('isAuth');
+  location.hash = '/login';
+};
 
 const store = {
   theme: localStorage.getItem('theme') || 'light',
