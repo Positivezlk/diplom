@@ -8,7 +8,11 @@ async function api(path, options = {}) {
 }
 
 if (localStorage.getItem('isAuth') === '1') {
+
+  location.replace('/app#/dashboard');
+
   location.replace('/#/dashboard');
+
 }
 
 const loginForm = document.getElementById('loginForm');
@@ -29,7 +33,11 @@ loginForm.onsubmit = async (e) => {
   try {
     await api('/auth/login', { method: 'POST', body: JSON.stringify({ email: loginEmail.value, password: loginPassword.value }) });
     localStorage.setItem('isAuth', '1');
+
+    location.replace('/app#/dashboard');
+
     location.replace('/#/dashboard');
+
   } catch (err) { alert(err.message); }
 };
 
@@ -38,6 +46,10 @@ registerForm.onsubmit = async (e) => {
   try {
     await api('/auth/register', { method: 'POST', body: JSON.stringify({ name: regName.value, email: regEmail.value, password: regPassword.value, confirm_password: regConfirm.value }) });
     localStorage.setItem('isAuth', '1');
+
+    location.replace('/app#/dashboard');
+
     location.replace('/#/dashboard');
+
   } catch (err) { alert(err.message); }
 };

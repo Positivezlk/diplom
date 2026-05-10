@@ -6,8 +6,13 @@ const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, 
 const API = '/api';
 const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
 
+
+const API = '/api';
+const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [], isAuth: localStorage.getItem('isAuth') === '1' };
+
 const API = '/api';
 const store = { theme: 'light', user: { name: 'Alex', email: 'alex@mail.com' }, tasks: [] };
+
 
 
 const view = document.getElementById('view');
@@ -32,11 +37,13 @@ async function bootstrap() {
 
 function route() {
 
+
   const path = location.hash.replace('#', '') || '/dashboard';
   if (!store.isAuth) {
     location.replace('/auth.html');
     return;
   }
+
 
   const path = location.hash.replace('#', '') || '/login';
 
@@ -59,6 +66,7 @@ function route() {
   if (path === '/settings') return renderSettings();
   return render404();
 }
+
 
 
 function renderLogin() {
@@ -121,9 +129,11 @@ function renderProfile() {
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="logout()">Logout</button></div>`;
 
 
+
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="logout()">Logout</button></div>`;
 
   view.innerHTML = `<div class="card card-soft p-4"><div class="d-flex align-items-center gap-3"><div class="rounded-circle bg-primary" style="width:72px;height:72px"></div><div><h4>${store.user.name}</h4><p class="mb-0">${store.user.email}</p></div></div><hr><p>Продуктивность: ${store.tasks.filter(t => t.status === 'done').length}/${store.tasks.length || 0}</p><button class="btn btn-outline-danger" onclick="location.hash='/login'">Logout</button></div>`;
+
 
 }
 function renderSettings() {
@@ -137,11 +147,13 @@ window.addEventListener('hashchange', route);
 bootstrap();
 
 
+
 window.logout = () => {
   store.isAuth = false;
   localStorage.removeItem('isAuth');
   location.replace('/auth.html');
 };
+
 
 
 window.logout = () => {
@@ -205,3 +217,4 @@ themeBtn.onclick=()=>{store.theme=store.theme==='dark'?'light':'dark'; applyThem
 applyTheme();
 window.addEventListener('hashchange', route);
 route();
+
