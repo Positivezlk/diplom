@@ -12,8 +12,10 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 
+
 from .models import LoginRequest, RegisterRequest, TaskCreate, Task, User
 from .storage import load_db, save_db
+
 
 
 app = FastAPI(title='Smart Task Manager API')
@@ -119,6 +121,13 @@ def get_theme():
     return {'theme': db.get('theme', 'light')}
 
 
+
+app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
+
+
+@app.get('/')
+def index():
+    return FileResponse(ROOT_DIR / 'index.html')
 
 app.mount('/assets', StaticFiles(directory=ROOT_DIR, html=False), name='assets')
 

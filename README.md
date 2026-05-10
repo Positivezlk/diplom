@@ -26,6 +26,7 @@ Open in browser:
 
 > `0.0.0.0` is a bind address for the server, not a client URL for browser navigation.
 > If you run with `--host 0.0.0.0`, still open `http://127.0.0.1:8000/` (or `localhost`).
+
 You can run the app with **either** import path:
 
 ```bash
@@ -39,3 +40,4 @@ uvicorn src.backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Then open `http://127.0.0.1:8000/`.
+
