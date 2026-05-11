@@ -1,193 +1,134 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from uuid import uuid4
-import uuid
 
-from .database import SessionLocal, engine
-from .models import Base, UserDB, TaskDB, LoginRequest, RegisterRequest, TaskCreate, TaskUpdate
-from .security import hash_password, verify_password
+from .database import Base, engine, get_db
+from .models import LoginRequest, RegisterRequest, TaskCreate, TaskDB, TaskRead, TaskUpdate, TokenResponse, UserDB, UserRead
+from .security import create_access_token, get_current_user, hash_password, verify_password
 
-# -----------------------
-# INIT
-# -----------------------
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(title='Smart Manager API')
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
-# -----------------------
-# DB DEPENDENCY
-# -----------------------
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
-# -----------------------
-# AUTH
-# -----------------------
+@app.get('/health')
+def health():
+    return {'status': 'ok'}
 
-@app.post("/api/register")
+
+@app.post('/auth/register', response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+    if payload.confirm_password is not None and payload.password != payload.confirm_password:
+        raise HTTPException(status_code=400, detail='Passwords do not match')
 
-    user = db.query(UserDB).filter(UserDB.email == payload.email).first()
+    existing_user = db.query(UserDB).filter(UserDB.email == payload.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail='Email already registered')
 
-    if user:
-        raise HTTPException(400, "Email already exists")
+    user = UserDB(
+        name=payload.name.strip(),
+        email=payload.email.lower(),
+        password_hash=hash_password(payload.password),
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
-    if payload.password != payload.confirm_password:
-        raise HTTPException(400, "Passwords do not match")
 
-    new_user = UserDB(
-        name=payload.name,
-        email=payload.email,
-        password=hash_password(payload.password)
+@app.post('/auth/login', response_model=TokenResponse)
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(UserDB).filter(UserDB.email == payload.email.lower()).first()
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid email or password')
+
+    return {'access_token': create_access_token(user), 'token_type': 'bearer', 'user': user}
+
+
+@app.get('/auth/me', response_model=UserRead)
+def auth_me(current_user: UserDB = Depends(get_current_user)):
+    return current_user
+
+
+@app.get('/users/me', response_model=UserRead)
+def users_me(current_user: UserDB = Depends(get_current_user)):
+    return current_user
+
+
+@app.get('/tasks', response_model=list[TaskRead])
+def list_tasks(
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
+):
+    return (
+        db.query(TaskDB)
+        .filter(TaskDB.owner_id == current_user.id)
+        .order_by(TaskDB.created_at.desc())
+        .all()
     )
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
 
-    return {"ok": True}
-
-
-@app.post("/api/login")
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
-
-    user = db.query(UserDB).filter(UserDB.email == payload.email).first()
-
-    if not user:
-        raise HTTPException(404, "User not found")
-
-    if not verify_password(payload.password, user.password):
-        raise HTTPException(401, "Wrong password")
-
-    # простая "сессия"
-    session_id = str(uuid.uuid4())
-    user.session = session_id
-
-    db.commit()
-
-    return {
-        "ok": True,
-        "session": session_id,
-        "user": {
-            "id": user.user_id,
-            "name": user.name,
-            "email": user.email
-        }
-    }
-
-# -----------------------
-# TASKS (USER BASED)
-# -----------------------
-
-def get_user_by_session(db: Session, session: str):
-    return db.query(UserDB).filter(UserDB.session == session).first()
-
-
-@app.get("/api/tasks")
-def list_tasks(session: str, db: Session = Depends(get_db)):
-
-    user = get_user_by_session(db, session)
-
-    if not user:
-        raise HTTPException(401, "Unauthorized")
-
-    tasks = db.query(TaskDB).filter(TaskDB.user_id == user.user_id).all()
-
-    return tasks
-
-
-@app.post("/api/tasks")
+@app.post('/tasks', response_model=TaskRead, status_code=status.HTTP_201_CREATED)
 def create_task(
     payload: TaskCreate,
-    session: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
 ):
-
-    user = get_user_by_session(db, session)
-
-    if not user:
-        raise HTTPException(401, "Unauthorized")
-
     task = TaskDB(
-        task_id=str(uuid4()),
-        title=payload.title,
-        description=payload.description,
-        status="todo",
-        priority="medium",
-        user_id=user.user_id
+        title=payload.title.strip(),
+        description=payload.description or '',
+        status=payload.status or 'todo',
+        priority=payload.priority or 'medium',
+        owner_id=current_user.id,
     )
-
     db.add(task)
     db.commit()
     db.refresh(task)
-
     return task
 
 
-@app.delete("/api/tasks/{task_id}")
-def delete_task(task_id: str, session: str, db: Session = Depends(get_db)):
-
-    user = get_user_by_session(db, session)
-
-    if not user:
-        raise HTTPException(401, "Unauthorized")
-
-    task = db.query(TaskDB).filter(
-        TaskDB.task_id == task_id,
-        TaskDB.user_id == user.user_id
-    ).first()
-
+@app.put('/tasks/{task_id}', response_model=TaskRead)
+def update_task(
+    task_id: int,
+    payload: TaskUpdate,
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
+):
+    task = db.query(TaskDB).filter(TaskDB.id == task_id, TaskDB.owner_id == current_user.id).first()
     if not task:
-        raise HTTPException(404, "Task not found")
+        raise HTTPException(status_code=404, detail='Task not found')
 
-    db.delete(task)
-    db.commit()
-
-    return {"ok": True}
-
-
-@app.patch("/api/tasks/{task_id}")
-def update_task(task_id: str, payload: TaskUpdate, session: str, db: Session = Depends(get_db)):
-
-    user = get_user_by_session(db, session)
-
-    if not user:
-        raise HTTPException(401, "Unauthorized")
-
-    task = db.query(TaskDB).filter(
-        TaskDB.task_id == task_id,
-        TaskDB.user_id == user.user_id
-    ).first()
-
-    if not task:
-        raise HTTPException(404, "Task not found")
-
-    if payload.title is not None:
-        task.title = payload.title
-
-    if payload.description is not None:
-        task.description = payload.description
-
-    if payload.status is not None:
-        task.status = payload.status
-
-    if payload.priority is not None:
-        task.priority = payload.priority
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if value is not None:
+            setattr(task, field, value)
 
     db.commit()
     db.refresh(task)
-
     return task
+
+
+@app.delete('/tasks/{task_id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
+):
+    task = db.query(TaskDB).filter(TaskDB.id == task_id, TaskDB.owner_id == current_user.id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail='Task not found')
+
+    db.delete(task)
+    db.commit()
+    return None
