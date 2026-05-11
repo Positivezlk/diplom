@@ -1,39 +1,51 @@
 <script setup>
 import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
+const route = useRoute()
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
+const message = ref('')
 
 async function submit() {
+  message.value = ''
   try {
     await auth.login(email.value, password.value)
-    router.push('/')
-  } catch (e) {
-    alert('Ошибка входа')
+    router.push(route.query.redirect || '/dashboard')
+  } catch (err) {
+    message.value = auth.error
   }
 }
 </script>
 
 <template>
-  <div class="auth-page">
+  <main class="auth-page">
+    <form class="auth-card" @submit.prevent="submit">
+      <div class="brand-badge">✓</div>
+      <h1>Вход</h1>
+      <p>Войдите в Smart Manager, чтобы управлять задачами.</p>
 
-    <h2>Вход</h2>
+      <label>
+        Email
+        <input v-model="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+      </label>
 
-    <input v-model="email" placeholder="Email" />
-    <input v-model="password" type="password" placeholder="Пароль" />
+      <label>
+        Пароль
+        <input v-model="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+      </label>
 
-    <button @click="submit">
-      Войти
-    </button>
+      <div v-if="message" class="error-message">{{ message }}</div>
 
-    <router-link to="/register">
-      Нет аккаунта? Регистрация
-    </router-link>
+      <button class="primary-btn" type="submit" :disabled="auth.loading">
+        {{ auth.loading ? 'Входим...' : 'Войти' }}
+      </button>
 
-  </div>
+      <router-link to="/register">Нет аккаунта? Зарегистрироваться</router-link>
+    </form>
+  </main>
 </template>

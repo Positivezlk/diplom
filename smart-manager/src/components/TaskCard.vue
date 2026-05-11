@@ -1,106 +1,72 @@
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 
 const props = defineProps({
-  task: Object
+  task: {
+    type: Object,
+    required: true,
+  },
 })
 
 const emit = defineEmits(['delete', 'update'])
-
 const editing = ref(false)
 
-const form = ref({
+const form = reactive({
   title: props.task.title,
-  description: props.task.description
+  description: props.task.description,
+  status: props.task.status,
+  priority: props.task.priority,
 })
 
-async function save() {
-  emit('update', {
-    id: props.task.id,
-    title: form.value.title,
-    description: form.value.description
-  })
+watch(
+  () => props.task,
+  (task) => {
+    form.title = task.title
+    form.description = task.description
+    form.status = task.status
+    form.priority = task.priority
+  },
+)
 
+function save() {
+  emit('update', props.task.id, { ...form })
   editing.value = false
 }
 </script>
 
 <template>
-  <div class="card p-3 mb-3 shadow-sm">
-
-    <div class="d-flex justify-content-between gap-3">
-
-      <div class="flex-grow-1">
-
-        <template v-if="editing">
-
-          <input v-model="form.title" class="form-control mb-2" />
-
-          <textarea v-model="form.description" class="form-control" />
-
-        </template>
-
-        <template v-else>
-
-          <h4>{{ task.title }}</h4>
-
-          <p class="mb-0">{{ task.description }}</p>
-
-        </template>
-
+  <article class="task-card">
+    <template v-if="editing">
+      <input v-model="form.title" class="input-soft" />
+      <textarea v-model="form.description" class="input-soft" rows="3" />
+      <div class="task-edit-grid">
+        <select v-model="form.status" class="input-soft">
+          <option value="todo">Todo</option>
+          <option value="in_progress">В процессе</option>
+          <option value="done">Готово</option>
+        </select>
+        <select v-model="form.priority" class="input-soft">
+          <option value="low">Низкий</option>
+          <option value="medium">Средний</option>
+          <option value="high">Высокий</option>
+        </select>
       </div>
+    </template>
 
-      <div class="d-flex flex-column gap-2">
-
-        <button
-          v-if="editing"
-          @click="save"
-          class="btn btn-success btn-sm"
-        >
-          Save
-        </button>
-
-        <button
-          v-else
-          @click="editing = true"
-          class="btn btn-outline-primary btn-sm"
-        >
-          Edit
-        </button>
-
-        <button
-          @click="emit('delete', task.id)"
-          class="btn btn-outline-danger btn-sm"
-        >
-          Delete
-        </button>
-
+    <template v-else>
+      <div class="task-card-header">
+        <h3>{{ task.title }}</h3>
+        <span :class="['priority', `priority-${task.priority}`]">{{ task.priority }}</span>
       </div>
+      <p>{{ task.description || 'Без описания' }}</p>
+      <div class="status-pill">{{ task.status }}</div>
+    </template>
 
+    <div class="task-actions">
+      <button v-if="editing" class="small-btn success" @click="save">Сохранить</button>
+      <button v-if="editing" class="small-btn" @click="editing = false">Отмена</button>
+      <button v-else class="small-btn" @click="editing = true">Изменить</button>
+      <button class="small-btn danger" @click="emit('delete', task.id)">Удалить</button>
     </div>
-
-  </div>
-  </template>
-  <style>
-    .task-card {
-    border-radius: 14px;
-    padding: 14px;
-    background: white;
-    border: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .task-card h4 {
-    font-size: 16px;
-    font-weight: 600;
-    }
-
-    .task-card p {
-    font-size: 13px;
-    color: #6b7280;
-    }
-
-    /* кнопки справа */
-    .task-actions button {
-    width: 100%;
-    }
-    </style>
+  </article>
+</template>
