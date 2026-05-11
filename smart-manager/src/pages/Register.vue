@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -9,11 +9,14 @@ const router = useRouter()
 const name = ref('')
 const email = ref('')
 const password = ref('')
-const confirm = ref('')
+const confirmPassword = ref('')
+const message = ref('')
 
 async function submit() {
-  if (password.value !== confirm.value) {
-    alert('Пароли не совпадают')
+  message.value = ''
+
+  if (password.value !== confirmPassword.value) {
+    message.value = 'Пароли не совпадают'
     return
   }
 
@@ -22,33 +25,49 @@ async function submit() {
       name: name.value,
       email: email.value,
       password: password.value,
-      confirm_password: confirm.value
+      confirm_password: confirmPassword.value,
     })
-
     router.push('/login')
-  } catch (e) {
-    alert('Ошибка регистрации')
+  } catch (err) {
+    message.value = auth.error
   }
 }
 </script>
 
 <template>
-  <div class="auth-page">
+  <main class="auth-page">
+    <form class="auth-card" @submit.prevent="submit">
+      <div class="brand-badge">✓</div>
+      <h1>Регистрация</h1>
+      <p>Создайте аккаунт, чтобы сохранять задачи в SQLite.</p>
 
-    <h2>Регистрация</h2>
+      <label>
+        Имя
+        <input v-model="name" type="text" autocomplete="name" required placeholder="Алексей" />
+      </label>
 
-    <input v-model="name" placeholder="Имя" />
-    <input v-model="email" placeholder="Email" />
-    <input v-model="password" type="password" placeholder="Пароль" />
-    <input v-model="confirm" type="password" placeholder="Повтор пароля" />
+      <label>
+        Email
+        <input v-model="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+      </label>
 
-    <button @click="submit">
-      Создать аккаунт
-    </button>
+      <label>
+        Пароль
+        <input v-model="password" type="password" autocomplete="new-password" minlength="6" required placeholder="Минимум 6 символов" />
+      </label>
 
-    <router-link to="/login">
-      Уже есть аккаунт
-    </router-link>
+      <label>
+        Повторите пароль
+        <input v-model="confirmPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Повторите пароль" />
+      </label>
 
-  </div>
+      <div v-if="message" class="error-message">{{ message }}</div>
+
+      <button class="primary-btn" type="submit" :disabled="auth.loading">
+        {{ auth.loading ? 'Создаём...' : 'Создать аккаунт' }}
+      </button>
+
+      <router-link to="/login">Уже есть аккаунт? Войти</router-link>
+    </form>
+  </main>
 </template>

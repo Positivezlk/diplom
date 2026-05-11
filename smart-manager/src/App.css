@@ -8,24 +8,14 @@ h1 {
   letter-spacing: -0.5px;
 }
 
-/* карточки */
-/* .card {
-  border: 0;
-  border-radius: 16px;
-  background: #fff;
-} */
-
-/* мягкая тень */
 .shadow-sm {
   box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
 }
 
-/* кнопки */
 .btn {
   border-radius: 10px;
 }
 
-/* task card */
 .task-card {
   transition: all .2s ease;
 }
@@ -35,20 +25,10 @@ h1 {
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
-/* drag state */
 .sortable-ghost {
   opacity: 0.4;
 }
 
-/* input focus */
-input:focus,
-textarea:focus,
-select:focus {
-  box-shadow: none !important;
-  border-color: #4f46e5 !important;
-}
-
-/* фильтр панель */
 .card.p-3.mb-3 {
   backdrop-filter: blur(10px);
   background: rgba(255,255,255,0.9);
