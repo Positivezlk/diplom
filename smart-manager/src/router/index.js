@@ -1,44 +1,38 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-
-import App from 'App.vue'
-
-// ВАЖНО: у тебя pages, не components
 import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
+import DashboardView from '@/views/DashboardView.vue'
 
 const routes = [
-  {
-    path: '/',
-    component: App,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/login',
-    component: Login
-  },
-  {
-    path: '/register',
-    component: Register
-  }
+  { path: '/', redirect: '/dashboard' },
+  { path: '/dashboard', component: DashboardView, meta: { requiresAuth: true } },
+  { path: '/login', component: Login, meta: { guestOnly: true } },
+  { path: '/register', component: Register, meta: { guestOnly: true } },
+  { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
-// auth guard
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  if (to.meta.requiresAuth && !auth.isAuth) {
-    return '/login'
+  if (auth.token) {
+    await auth.restoreSession()
   }
 
-  if ((to.path === '/login' || to.path === '/register') && auth.isAuth) {
-    return '/'
+  if (to.meta.requiresAuth && !auth.isAuth) {
+    return { path: '/login', query: { redirect: to.fullPath } }
   }
+
+  if (to.meta.guestOnly && auth.isAuth) {
+    return '/dashboard'
+  }
+
+  return true
 })
 
 export default router

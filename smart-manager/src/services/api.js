@@ -1,25 +1,29 @@
-const API = 'http://localhost:8000/api'
+import axios from 'axios'
 
-export async function api(path, options = {}) {
-  const session = localStorage.getItem('session')
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
-  let url = API + path
-
-  if (session) {
-    const sep = url.includes('?') ? '&' : '?'
-    url += `${sep}session=${session}`
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
+  return config
+})
 
-  const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    ...options
-  })
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('user')
+    }
+    return Promise.reject(error)
+  },
+)
 
-  if (!res.ok) {
-    throw new Error(await res.text())
-  }
-
-  return res.json()
-}
+export default api

@@ -1,39 +1,64 @@
 <script setup>
 import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
+import { useUiStore } from '@/stores/ui'
 
 const auth = useAuthStore()
+const ui = useUiStore()
+const route = useRoute()
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
+const message = ref('')
 
 async function submit() {
+  message.value = ''
   try {
     await auth.login(email.value, password.value)
-    router.push('/')
-  } catch (e) {
-    alert('Ошибка входа')
+    router.push(route.query.redirect || '/dashboard')
+  } catch (err) {
+    message.value = auth.error
   }
 }
 </script>
 
 <template>
-  <div class="auth-page">
+  <main class="auth-page">
+    <section class="auth-shell">
+      <div class="auth-hero">
+        <button class="theme-toggle auth-theme" type="button" @click="ui.toggleTheme">
+          <span class="theme-toggle-track"><span class="theme-toggle-thumb">{{ ui.isDark ? '☾' : '☀' }}</span></span>
+          <span>{{ ui.isDark ? 'Тёмная тема' : 'Светлая тема' }}</span>
+        </button>
+        <div class="brand-badge">✓</div>
+        <p class="eyebrow">Личный кабинет</p>
+        <h1>С возвращением</h1>
+        <p>Войдите, чтобы продолжить работу с задачами, дедлайнами и приоритетами.</p>
+      </div>
 
-    <h2>Вход</h2>
+      <form class="auth-card" @submit.prevent="submit">
+        <h2>Вход</h2>
 
-    <input v-model="email" placeholder="Email" />
-    <input v-model="password" type="password" placeholder="Пароль" />
+        <label>
+          Электронная почта
+          <input v-model="email" type="email" autocomplete="email" required placeholder="pochta@primer.ru" />
+        </label>
 
-    <button @click="submit">
-      Войти
-    </button>
+        <label>
+          Пароль
+          <input v-model="password" type="password" autocomplete="current-password" required placeholder="Введите пароль" />
+        </label>
 
-    <router-link to="/register">
-      Нет аккаунта? Регистрация
-    </router-link>
+        <div v-if="message" class="error-message">{{ message }}</div>
 
-  </div>
+        <button class="primary-btn" type="submit" :disabled="auth.loading">
+          {{ auth.loading ? 'Входим...' : 'Войти' }}
+        </button>
+
+        <router-link to="/register">Нет аккаунта? Зарегистрироваться</router-link>
+      </form>
+    </section>
+  </main>
 </template>
