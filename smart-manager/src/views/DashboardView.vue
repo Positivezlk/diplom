@@ -131,6 +131,27 @@ async function logout() {
           </div>
         </div>
       </div>
+      <button class="button button-primary" type="button" @click="showCreate = true">+ Новая карточка</button>
+    </section>
+
+    <section class="stats-grid" aria-label="Статистика задач">
+      <article class="stat-card stat-purple">
+        <div class="stat-icon">📋</div>
+        <div><span>Всего задач</span><strong>{{ stats.total }}</strong></div>
+      </article>
+      <article class="stat-card stat-green">
+        <div class="stat-icon">✓</div>
+        <div><span>Выполнено</span><strong>{{ stats.done }}</strong></div>
+      </article>
+      <article class="stat-card stat-blue">
+        <div class="stat-icon">⟳</div>
+        <div><span>В процессе</span><strong>{{ stats.progress }}</strong></div>
+      </article>
+      <article class="stat-card stat-orange">
+        <div class="stat-icon">🗂</div>
+        <div><span>К выполнению</span><strong>{{ stats.todo }}</strong></div>
+      </article>
+    </section>
 
       <div class="stat-card stat-green">
         <div class="stat-top">
@@ -161,7 +182,7 @@ async function logout() {
           </div>
         </div>
       </div>
-    </section>
+
 
     <section class="main-grid">
       <div class="panel tasks-panel">

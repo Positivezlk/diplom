@@ -1,6 +1,5 @@
-/* =========================
+
    GLOBAL / OLD GLASS DESIGN
-========================= */
 
 :root{
   --bg1:#f8fafc;
@@ -47,9 +46,8 @@ button{ cursor:pointer; }
   padding-bottom:120px;
 }
 
-/* =========================
+
    TOPBAR
-========================= */
 
 .topbar{
   display:flex;
@@ -190,9 +188,6 @@ button{ cursor:pointer; }
   to{ opacity:1; transform:translateY(0); }
 }
 
-/* =========================
-   STATS
-========================= */
 
 .stats-grid{
   display:grid;
@@ -256,9 +251,6 @@ button{ cursor:pointer; }
 .stat-blue .stat-value{ color:#3b82f6; }
 .stat-orange .stat-value{ color:#f59e0b; }
 
-/* =========================
-   CONTENT / PANEL / FILTERS
-========================= */
 
 .main-grid{
   display:grid;
@@ -327,9 +319,6 @@ select:focus{
   min-width:0;
 }
 
-/* =========================
-   EMPTY / TOAST
-========================= */
 
 .empty-state{
   flex:1;
@@ -397,9 +386,6 @@ select:focus{
   to{ transform:translateY(0); opacity:1; }
 }
 
-/* =========================
-   BUTTONS / CREATE MODAL
-========================= */
 
 .btn-gradient{
   border:none;
@@ -504,9 +490,7 @@ textarea.input-soft{
   to{ opacity:1; transform:translate(-50%, -50%) scale(1); }
 }
 
-/* =========================
-   TASKS
-========================= */
+
 
 .glass{
   background:var(--card);
@@ -636,9 +620,6 @@ textarea.input-soft{
   min-height:110px;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
 
 @media(max-width:1200px){
   .stats-grid{ grid-template-columns:repeat(2,1fr); }
