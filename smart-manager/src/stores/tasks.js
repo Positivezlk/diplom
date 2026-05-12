@@ -27,10 +27,11 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  async function addTask(payload) {
+  async function addTask(payload, options = {}) {
+    const { notify: shouldNotify = true, message = 'Карточка успешно создана' } = options
     const { data } = await api.post('/tasks', payload)
     tasks.value.unshift(data)
-    notify('Карточка успешно создана')
+    if (shouldNotify) notify(message)
     return data
   }
 

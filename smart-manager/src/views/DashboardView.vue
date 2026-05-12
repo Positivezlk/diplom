@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import TaskCard from '@/components/TaskCard.vue'
+import VoiceAssistantButton from '@/components/VoiceAssistantButton.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useTasksStore } from '@/stores/tasks'
 import { useUiStore } from '@/stores/ui'
@@ -64,7 +65,7 @@ const selectedTaskDetails = computed(() => {
 })
 
 function priorityText(priority) {
-  return ({ low: 'Низкий', medium: 'Средний', high: 'Высокий' }[priority] || 'Средний')
+  return ({ low: 'Низкий', medium: 'Средний', high: 'Высокий', critical: 'Критический' }[priority] || 'Средний')
 }
 
 function statusText(status) {
@@ -270,6 +271,7 @@ function requestLogout() {
         </div>
         <div class="panel-heading-actions">
           <span>{{ filteredTasks.length }} из {{ tasks.tasks.length }}</span>
+          <VoiceAssistantButton />
           <button class="button button-primary" type="button" @click="showCreate = true">Создать задачу</button>
         </div>
       </div>
@@ -295,6 +297,7 @@ function requestLogout() {
             <option value="low">Низкий</option>
             <option value="medium">Средний</option>
             <option value="high">Высокий</option>
+            <option value="critical">Критический</option>
           </select>
         </label>
       </div>

@@ -30,6 +30,7 @@ const priorityText = computed(() => ({
   low: 'Низкий',
   medium: 'Средний',
   high: 'Высокий',
+  critical: 'Критический',
 }[props.task.priority] || 'Средний'))
 
 const deadlineText = computed(() => {

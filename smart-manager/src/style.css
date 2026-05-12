@@ -1014,3 +1014,123 @@ textarea.field-control {
   .confirm-dialog { border-radius: 24px; padding: 20px; }
   .toast-stack { top: 10px; right: 10px; width: calc(100vw - 20px); }
 }
+
+.voice-assistant {
+  position: relative;
+  display: inline-flex;
+}
+
+.voice-assistant-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 11px 16px;
+  color: var(--primary-strong);
+  background: var(--surface-strong);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+  font-weight: 900;
+  transition: transform .18s ease, box-shadow .18s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.voice-assistant-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(99, 102, 241, .36);
+}
+
+.voice-assistant-button:active:not(:disabled) {
+  transform: translateY(0) scale(.98);
+}
+
+.voice-assistant-button.is-listening {
+  color: white;
+  border-color: transparent;
+  background: linear-gradient(135deg, #ef4444, #8b5cf6);
+  box-shadow: 0 16px 34px rgba(239, 68, 68, .28);
+}
+
+.voice-assistant-button.is-processing {
+  color: var(--muted);
+  background: var(--surface-soft);
+}
+
+.voice-assistant-icon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.voice-assistant-button.is-listening .voice-assistant-icon {
+  animation: microphonePulse 1.05s ease-in-out infinite;
+}
+
+.voice-assistant-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 35;
+  width: min(360px, calc(100vw - 32px));
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface-strong);
+  backdrop-filter: blur(22px) saturate(145%);
+  box-shadow: var(--shadow-md);
+}
+
+.voice-assistant-status {
+  color: var(--text);
+  font-weight: 900;
+}
+
+.voice-assistant-transcript,
+.voice-assistant-result {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.voice-assistant-result {
+  color: var(--primary-strong);
+  font-weight: 800;
+}
+
+.priority-critical {
+  color: #be123c;
+  background: rgba(244, 63, 94, .15);
+}
+
+.voice-popover-motion-enter-active,
+.voice-popover-motion-leave-active {
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.voice-popover-motion-enter-from,
+.voice-popover-motion-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(.98);
+}
+
+@keyframes microphonePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .45); transform: scale(1); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); transform: scale(1.08); }
+}
+
+@media (max-width: 820px) {
+  .voice-assistant,
+  .voice-assistant-button {
+    width: 100%;
+  }
+
+  .voice-assistant-popover {
+    left: 0;
+    right: auto;
+  }
+}
