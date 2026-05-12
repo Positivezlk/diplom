@@ -1,85 +1,80 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import axios from 'axios'
+import api from '@/services/api'
+import { useUiStore } from '@/stores/ui'
 
-const API = 'http://localhost:8000/api'
+function readStoredUser() {
+  const raw = localStorage.getItem('user')
+  return raw ? JSON.parse(raw) : null
+}
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null)
-  const session = ref(localStorage.getItem('session') || '')
+  const token = ref(localStorage.getItem('access_token') || '')
+  const user = ref(readStoredUser())
+  const loading = ref(false)
+  const error = ref('')
 
-  const isAuth = computed(() => !!session.value)
+  const isAuth = computed(() => Boolean(token.value))
 
-  /**
-   * LOGIN
-   */
+  function setSession(accessToken, currentUser) {
+    token.value = accessToken
+    user.value = currentUser
+    localStorage.setItem('access_token', accessToken)
+    localStorage.setItem('user', JSON.stringify(currentUser))
+  }
+
   async function login(email, password) {
+    loading.value = true
+    error.value = ''
     try {
-      const res = await axios.post(`${API}/login`, {
-        email,
-        password
-      })
-
-      session.value = res.data.session
-      user.value = res.data.user
-
-      localStorage.setItem('session', session.value)
-
-      return true
+      const { data } = await api.post('/auth/login', { email, password })
+      setSession(data.access_token, data.user)
+      useUiStore().pushToast({ title: 'Вы успешно вошли' })
+      return data.user
     } catch (err) {
-      console.error('Login error:', err)
-      return false
+      error.value = err.response?.data?.detail || 'Не удалось войти'
+      useUiStore().pushToast({ title: error.value, type: 'error' })
+      throw err
+    } finally {
+      loading.value = false
     }
   }
 
-  /**
-   * REGISTER
-   */
-  async function register(data) {
+  async function register(payload) {
+    loading.value = true
+    error.value = ''
     try {
-      await axios.post(`${API}/register`, data)
-      return true
+      const { data } = await api.post('/auth/register', payload)
+      useUiStore().pushToast({ title: 'Аккаунт создан', description: 'Теперь войдите в систему' })
+      return data
     } catch (err) {
-      console.error('Register error:', err)
-      return false
+      error.value = err.response?.data?.detail || 'Не удалось зарегистрироваться'
+      useUiStore().pushToast({ title: error.value, type: 'error' })
+      throw err
+    } finally {
+      loading.value = false
     }
   }
 
-  /**
-   * LOGOUT
-   */
-  function logout() {
-    session.value = ''
-    user.value = null
-    localStorage.removeItem('session')
-  }
-
-  /**
-   * LOAD USER (после перезагрузки)
-   */
-  async function fetchUser() {
-    if (!session.value) return
-
+  async function restoreSession() {
+    if (!token.value) return null
     try {
-      const res = await axios.get(`${API}/me`, {
-        headers: {
-          Authorization: session.value
-        }
-      })
-
-      user.value = res.data
+      const { data } = await api.get('/auth/me')
+      user.value = data
+      localStorage.setItem('user', JSON.stringify(data))
+      return data
     } catch (err) {
       logout()
+      return null
     }
   }
 
-  return {
-    user,
-    session,
-    isAuth,
-    login,
-    register,
-    logout,
-    fetchUser
+  function logout() {
+    token.value = ''
+    user.value = null
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('user')
   }
+
+  return { token, user, loading, error, isAuth, login, register, restoreSession, logout }
 })

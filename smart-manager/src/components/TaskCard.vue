@@ -1,106 +1,127 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const props = defineProps({
-  task: Object
+  task: {
+    type: Object,
+    required: true,
+  },
 })
 
-const emit = defineEmits(['delete', 'update'])
-
+const emit = defineEmits(['delete', 'update', 'open'])
 const editing = ref(false)
+const confirmSaveOpen = ref(false)
 
-const form = ref({
+const form = reactive({
   title: props.task.title,
-  description: props.task.description
+  description: props.task.description,
+  priority: props.task.priority,
+  deadline: props.task.deadline || '',
 })
 
-async function save() {
-  emit('update', {
-    id: props.task.id,
-    title: form.value.title,
-    description: form.value.description
-  })
+const statusText = computed(() => ({
+  todo: 'К выполнению',
+  in_progress: 'В процессе',
+  done: 'Выполнено',
+}[props.task.status] || 'К выполнению'))
 
+const priorityText = computed(() => ({
+  low: 'Низкий',
+  medium: 'Средний',
+  high: 'Высокий',
+}[props.task.priority] || 'Средний'))
+
+const deadlineText = computed(() => {
+  if (!props.task.deadline) return 'Без дедлайна'
+  return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(props.task.deadline))
+})
+
+watch(
+  () => props.task,
+  (task) => {
+    form.title = task.title
+    form.description = task.description
+    form.priority = task.priority
+    form.deadline = task.deadline || ''
+  },
+)
+
+function requestSave() {
+  if (!form.title.trim()) return
+  confirmSaveOpen.value = true
+}
+
+function confirmSave() {
+  emit('update', props.task.id, {
+    title: form.title.trim(),
+    description: form.description,
+    priority: form.priority,
+    deadline: form.deadline || null,
+  })
+  confirmSaveOpen.value = false
   editing.value = false
 }
 </script>
 
 <template>
-  <div class="card p-3 mb-3 shadow-sm">
+  <article class="task-card" tabindex="0" @click="emit('open', task)" @keydown.enter="emit('open', task)">
+    <template v-if="editing">
+      <div class="task-edit-form" @click.stop>
+        <label class="field-label">
+          Заголовок
+          <input v-model="form.title" class="field-control" maxlength="120" />
+        </label>
+        <label class="field-label">
+          Описание
+          <textarea v-model="form.description" class="field-control" rows="4" />
+        </label>
+        <div class="form-row">
+          <label class="field-label">
+            Приоритет
+            <select v-model="form.priority" class="field-control">
+              <option value="low">Низкий</option>
+              <option value="medium">Средний</option>
+              <option value="high">Высокий</option>
+            </select>
+          </label>
+          <label class="field-label">
+            Дедлайн
+            <input v-model="form.deadline" class="field-control" type="date" />
+          </label>
+        </div>
+      </div>
+    </template>
 
-    <div class="d-flex justify-content-between gap-3">
-
-      <div class="flex-grow-1">
-
-        <template v-if="editing">
-
-          <input v-model="form.title" class="form-control mb-2" />
-
-          <textarea v-model="form.description" class="form-control" />
-
-        </template>
-
-        <template v-else>
-
-          <h4>{{ task.title }}</h4>
-
-          <p class="mb-0">{{ task.description }}</p>
-
-        </template>
-
+    <template v-else>
+      <div class="task-card-header">
+        <span :class="['status-dot', `status-${task.status}`]"></span>
+        <span class="task-status">{{ statusText }}</span>
+        <button class="icon-button danger" type="button" aria-label="Удалить задачу" @click.stop="emit('delete', task)">×</button>
       </div>
 
-      <div class="d-flex flex-column gap-2">
+      <h3 class="task-title" :title="task.title">{{ task.title }}</h3>
+      <p class="task-description" :title="task.description">{{ task.description || 'Описание не добавлено' }}</p>
 
-        <button
-          v-if="editing"
-          @click="save"
-          class="btn btn-success btn-sm"
-        >
-          Save
-        </button>
-
-        <button
-          v-else
-          @click="editing = true"
-          class="btn btn-outline-primary btn-sm"
-        >
-          Edit
-        </button>
-
-        <button
-          @click="emit('delete', task.id)"
-          class="btn btn-outline-danger btn-sm"
-        >
-          Delete
-        </button>
-
+      <div class="task-meta">
+        <span :class="['priority-chip', `priority-${task.priority}`]">{{ priorityText }}</span>
+        <span class="deadline-chip">{{ deadlineText }}</span>
       </div>
+    </template>
 
+    <div class="task-actions" @click.stop>
+      <button v-if="editing" class="button button-primary button-small" type="button" :disabled="!form.title.trim()" @click="requestSave">Сохранить</button>
+      <button v-if="editing" class="button button-ghost button-small" type="button" @click="editing = false">Отмена</button>
+      <button v-else class="button button-ghost button-small" type="button" @click="editing = true">Редактировать</button>
+      <button v-if="!editing" class="button button-soft button-small" type="button" @click="emit('open', task)">Подробнее</button>
     </div>
-
-  </div>
-  </template>
-  <style>
-    .task-card {
-    border-radius: 14px;
-    padding: 14px;
-    background: white;
-    border: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .task-card h4 {
-    font-size: 16px;
-    font-weight: 600;
-    }
-
-    .task-card p {
-    font-size: 13px;
-    color: #6b7280;
-    }
-
-    /* кнопки справа */
-    .task-actions button {
-    width: 100%;
-    }
-    </style>
+    <ConfirmDialog
+      :open="confirmSaveOpen"
+      title="Сохранить изменения?"
+      message="Вы уверены, что хотите сохранить изменения?"
+      confirm-text="Сохранить"
+      @cancel="confirmSaveOpen = false"
+      @confirm="confirmSave"
+    />
+  </article>
+</template>
