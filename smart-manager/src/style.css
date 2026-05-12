@@ -1,6 +1,5 @@
 /* =========================
    GLOBAL / OLD GLASS DESIGN
-========================= */
 
 :root{
   --bg1:#f8fafc;
@@ -49,7 +48,6 @@ button{ cursor:pointer; }
 
 /* =========================
    TOPBAR
-========================= */
 
 .topbar{
   display:flex;
@@ -192,7 +190,6 @@ button{ cursor:pointer; }
 
 /* =========================
    STATS
-========================= */
 
 .stats-grid{
   display:grid;
@@ -258,7 +255,6 @@ button{ cursor:pointer; }
 
 /* =========================
    CONTENT / PANEL / FILTERS
-========================= */
 
 .main-grid{
   display:grid;
@@ -329,7 +325,6 @@ select:focus{
 
 /* =========================
    EMPTY / TOAST
-========================= */
 
 .empty-state{
   flex:1;
@@ -399,7 +394,6 @@ select:focus{
 
 /* =========================
    BUTTONS / CREATE MODAL
-========================= */
 
 .btn-gradient{
   border:none;
@@ -506,7 +500,6 @@ textarea.input-soft{
 
 /* =========================
    TASKS
-========================= */
 
 .glass{
   background:var(--card);
@@ -638,7 +631,6 @@ textarea.input-soft{
 
 /* =========================
    RESPONSIVE
-========================= */
 
 @media(max-width:1200px){
   .stats-grid{ grid-template-columns:repeat(2,1fr); }

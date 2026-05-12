@@ -10,6 +10,7 @@ const props = defineProps({
 
 const emit = defineEmits(['delete', 'update'])
 const editing = ref(false)
+const confirmSaveOpen = ref(false)
 
 const form = reactive({
   title: props.task.title,

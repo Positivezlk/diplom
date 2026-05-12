@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
+const ui = useUiStore()
 const router = useRouter()
 
 const name = ref('')
