@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const props = defineProps({
   task: {
@@ -8,15 +9,32 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['delete', 'update'])
+const emit = defineEmits(['delete', 'update', 'open'])
 const editing = ref(false)
 const confirmSaveOpen = ref(false)
 
 const form = reactive({
   title: props.task.title,
   description: props.task.description,
-  status: props.task.status,
   priority: props.task.priority,
+  deadline: props.task.deadline || '',
+})
+
+const statusText = computed(() => ({
+  todo: 'К выполнению',
+  in_progress: 'В процессе',
+  done: 'Выполнено',
+}[props.task.status] || 'К выполнению'))
+
+const priorityText = computed(() => ({
+  low: 'Низкий',
+  medium: 'Средний',
+  high: 'Высокий',
+}[props.task.priority] || 'Средний'))
+
+const deadlineText = computed(() => {
+  if (!props.task.deadline) return 'Без дедлайна'
+  return new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(props.task.deadline))
 })
 
 watch(
@@ -24,58 +42,86 @@ watch(
   (task) => {
     form.title = task.title
     form.description = task.description
-    form.status = task.status
     form.priority = task.priority
+    form.deadline = task.deadline || ''
   },
 )
 
-function save() {
-  emit('update', props.task.id, { ...form })
+function requestSave() {
+  if (!form.title.trim()) return
+  confirmSaveOpen.value = true
+}
+
+function confirmSave() {
+  emit('update', props.task.id, {
+    title: form.title.trim(),
+    description: form.description,
+    priority: form.priority,
+    deadline: form.deadline || null,
+  })
+  confirmSaveOpen.value = false
   editing.value = false
 }
 </script>
 
 <template>
-  <article class="glass task-card">
+  <article class="task-card" tabindex="0" @click="emit('open', task)" @keydown.enter="emit('open', task)">
     <template v-if="editing">
-      <div class="form-grid task-edit-form">
-        <input v-model="form.title" class="input-soft" />
-        <textarea v-model="form.description" class="input-soft" rows="3" />
-        <div class="two-cols">
-          <select v-model="form.status" class="input-soft">
-            <option value="todo">Todo</option>
-            <option value="in_progress">В процессе</option>
-            <option value="done">Выполнена</option>
-          </select>
-          <select v-model="form.priority" class="input-soft">
-            <option value="low">Низкий</option>
-            <option value="medium">Средний</option>
-            <option value="high">Высокий</option>
-          </select>
+      <div class="task-edit-form" @click.stop>
+        <label class="field-label">
+          Заголовок
+          <input v-model="form.title" class="field-control" maxlength="120" />
+        </label>
+        <label class="field-label">
+          Описание
+          <textarea v-model="form.description" class="field-control" rows="4" />
+        </label>
+        <div class="form-row">
+          <label class="field-label">
+            Приоритет
+            <select v-model="form.priority" class="field-control">
+              <option value="low">Низкий</option>
+              <option value="medium">Средний</option>
+              <option value="high">Высокий</option>
+            </select>
+          </label>
+          <label class="field-label">
+            Дедлайн
+            <input v-model="form.deadline" class="field-control" type="date" />
+          </label>
         </div>
       </div>
     </template>
 
     <template v-else>
-      <div class="task-card-top">
-        <div class="task-title">{{ task.title }}</div>
-        <button class="icon-btn danger-icon" type="button" @click="emit('delete', task.id)">×</button>
+      <div class="task-card-header">
+        <span :class="['status-dot', `status-${task.status}`]"></span>
+        <span class="task-status">{{ statusText }}</span>
+        <button class="icon-button danger" type="button" aria-label="Удалить задачу" @click.stop="emit('delete', task)">×</button>
       </div>
 
-      <div class="task-desc">{{ task.description || 'Без описания' }}</div>
+      <h3 class="task-title" :title="task.title">{{ task.title }}</h3>
+      <p class="task-description" :title="task.description">{{ task.description || 'Описание не добавлено' }}</p>
 
-      <div class="task-bottom">
-        <div class="badges-row">
-          <div class="badge-modern">{{ task.status === 'todo' ? 'Новая' : task.status === 'in_progress' ? 'В процессе' : 'Выполнена' }}</div>
-          <div :class="['priority', task.priority]">{{ task.priority }}</div>
-        </div>
+      <div class="task-meta">
+        <span :class="['priority-chip', `priority-${task.priority}`]">{{ priorityText }}</span>
+        <span class="deadline-chip">{{ deadlineText }}</span>
       </div>
     </template>
 
-    <div class="task-actions">
-      <button v-if="editing" class="btn-gradient task-action-primary" type="button" @click="save">Сохранить</button>
-      <button v-if="editing" class="soft-action" type="button" @click="editing = false">Отмена</button>
-      <button v-else class="soft-action" type="button" @click="editing = true">Изменить</button>
+    <div class="task-actions" @click.stop>
+      <button v-if="editing" class="button button-primary button-small" type="button" :disabled="!form.title.trim()" @click="requestSave">Сохранить</button>
+      <button v-if="editing" class="button button-ghost button-small" type="button" @click="editing = false">Отмена</button>
+      <button v-else class="button button-ghost button-small" type="button" @click="editing = true">Редактировать</button>
+      <button v-if="!editing" class="button button-soft button-small" type="button" @click="emit('open', task)">Подробнее</button>
     </div>
+    <ConfirmDialog
+      :open="confirmSaveOpen"
+      title="Сохранить изменения?"
+      message="Вы уверены, что хотите сохранить изменения?"
+      confirm-text="Сохранить"
+      @cancel="confirmSaveOpen = false"
+      @confirm="confirmSave"
+    />
   </article>
 </template>

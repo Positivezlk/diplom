@@ -9,6 +9,19 @@ from .security import create_access_token, get_current_user, hash_password, veri
 
 Base.metadata.create_all(bind=engine)
 
+
+def ensure_task_columns():
+    inspector = inspect(engine)
+    if 'tasks' not in inspector.get_table_names():
+        return
+    columns = {column['name'] for column in inspector.get_columns('tasks')}
+    if 'deadline' not in columns:
+        with engine.begin() as connection:
+            connection.execute(text('ALTER TABLE tasks ADD COLUMN deadline VARCHAR(32)'))
+
+
+ensure_task_columns()
+
 app = FastAPI(title='Smart Manager API')
 
 app.add_middleware(
@@ -31,11 +44,11 @@ def health():
 @app.post('/auth/register', response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     if payload.confirm_password is not None and payload.password != payload.confirm_password:
-        raise HTTPException(status_code=400, detail='Passwords do not match')
+        raise HTTPException(status_code=400, detail='Пароли не совпадают')
 
     existing_user = db.query(UserDB).filter(UserDB.email == payload.email).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail='Email already registered')
+        raise HTTPException(status_code=400, detail='Пользователь с такой почтой уже зарегистрирован')
 
     user = UserDB(
         name=payload.name.strip(),
@@ -52,7 +65,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(UserDB).filter(UserDB.email == payload.email.lower()).first()
     if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid email or password')
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Неверная электронная почта или пароль')
 
     return {'access_token': create_access_token(user), 'token_type': 'bearer', 'user': user}
 
@@ -89,8 +102,9 @@ def create_task(
     task = TaskDB(
         title=payload.title.strip(),
         description=payload.description or '',
-        status=payload.status or 'todo',
+        status='todo',
         priority=payload.priority or 'medium',
+        deadline=payload.deadline,
         owner_id=current_user.id,
     )
     db.add(task)
@@ -108,7 +122,7 @@ def update_task(
 ):
     task = db.query(TaskDB).filter(TaskDB.id == task_id, TaskDB.owner_id == current_user.id).first()
     if not task:
-        raise HTTPException(status_code=404, detail='Task not found')
+        raise HTTPException(status_code=404, detail='Задача не найдена')
 
     update_data = payload.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -128,7 +142,7 @@ def delete_task(
 ):
     task = db.query(TaskDB).filter(TaskDB.id == task_id, TaskDB.owner_id == current_user.id).first()
     if not task:
-        raise HTTPException(status_code=404, detail='Task not found')
+        raise HTTPException(status_code=404, detail='Задача не найдена')
 
     db.delete(task)
     db.commit()

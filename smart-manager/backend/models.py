@@ -28,6 +28,7 @@ class TaskDB(Base):
     description = Column(Text, default='', nullable=False)
     status = Column(String(32), default='todo', nullable=False)
     priority = Column(String(32), default='medium', nullable=False)
+    deadline = Column(String(32), nullable=True)
     owner_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -64,8 +65,8 @@ class TokenResponse(BaseModel):
 class TaskCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str = ''
-    status: str = 'todo'
     priority: str = 'medium'
+    deadline: Optional[str] = None
 
 
 class TaskUpdate(BaseModel):
@@ -84,6 +85,7 @@ class TaskRead(BaseModel):
     description: str
     status: str
     priority: str
+    deadline: Optional[str] = None
     owner_id: int
     created_at: datetime
     updated_at: datetime

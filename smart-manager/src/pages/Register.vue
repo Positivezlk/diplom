@@ -38,38 +38,49 @@ async function submit() {
 
 <template>
   <main class="auth-page">
-    <form class="auth-card" @submit.prevent="submit">
-      <div class="brand-badge">✓</div>
-      <h1>Регистрация</h1>
-      <p>Создайте аккаунт, чтобы сохранять задачи в SQLite.</p>
+    <section class="auth-shell">
+      <div class="auth-hero">
+        <button class="theme-toggle auth-theme" type="button" @click="ui.toggleTheme">
+          <span class="theme-toggle-track"><span class="theme-toggle-thumb">{{ ui.isDark ? '☾' : '☀' }}</span></span>
+          <span>{{ ui.isDark ? 'Тёмная тема' : 'Светлая тема' }}</span>
+        </button>
+        <div class="brand-badge">✓</div>
+        <p class="eyebrow">Новый профиль</p>
+        <h1>Создайте рабочее пространство</h1>
+        <p>Регистрация занимает меньше минуты. После входа ваши карточки будут сохраняться локально в базе проекта.</p>
+      </div>
 
-      <label>
-        Имя
-        <input v-model="name" type="text" autocomplete="name" required placeholder="Алексей" />
-      </label>
+      <form class="auth-card" @submit.prevent="submit">
+        <h2>Регистрация</h2>
 
-      <label>
-        Email
-        <input v-model="email" type="email" autocomplete="email" required placeholder="you@example.com" />
-      </label>
+        <label>
+          Имя
+          <input v-model="name" type="text" autocomplete="name" required placeholder="Например: Алексей" />
+        </label>
 
-      <label>
-        Пароль
-        <input v-model="password" type="password" autocomplete="new-password" minlength="6" required placeholder="Минимум 6 символов" />
-      </label>
+        <label>
+          Электронная почта
+          <input v-model="email" type="email" autocomplete="email" required placeholder="pochta@primer.ru" />
+        </label>
 
-      <label>
-        Повторите пароль
-        <input v-model="confirmPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Повторите пароль" />
-      </label>
+        <label>
+          Пароль
+          <input v-model="password" type="password" autocomplete="new-password" minlength="6" required placeholder="Минимум 6 символов" />
+        </label>
 
-      <div v-if="message" class="error-message">{{ message }}</div>
+        <label>
+          Повторите пароль
+          <input v-model="confirmPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Повторите пароль" />
+        </label>
 
-      <button class="primary-btn" type="submit" :disabled="auth.loading">
-        {{ auth.loading ? 'Создаём...' : 'Создать аккаунт' }}
-      </button>
+        <div v-if="message" class="error-message">{{ message }}</div>
 
-      <router-link to="/login">Уже есть аккаунт? Войти</router-link>
-    </form>
+        <button class="primary-btn" type="submit" :disabled="auth.loading">
+          {{ auth.loading ? 'Создаём...' : 'Создать аккаунт' }}
+        </button>
+
+        <router-link to="/login">Уже есть аккаунт? Войти</router-link>
+      </form>
+    </section>
   </main>
 </template>
