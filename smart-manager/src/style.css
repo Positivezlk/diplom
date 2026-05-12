@@ -188,7 +188,6 @@ button{ cursor:pointer; }
   to{ opacity:1; transform:translateY(0); }
 }
 
-
 .stats-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -386,7 +385,6 @@ select:focus{
   to{ transform:translateY(0); opacity:1; }
 }
 
-
 .btn-gradient{
   border:none;
   border-radius:18px;
@@ -489,7 +487,6 @@ textarea.input-soft{
   from{ opacity:0; transform:translate(-50%, -46%) scale(.98); }
   to{ opacity:1; transform:translate(-50%, -50%) scale(1); }
 }
-
 
 
 .glass{
@@ -619,7 +616,6 @@ textarea.input-soft{
 .task-edit-form textarea.input-soft{
   min-height:110px;
 }
-
 
 @media(max-width:1200px){
   .stats-grid{ grid-template-columns:repeat(2,1fr); }
