@@ -1,7 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
-import { useUiStore } from '@/stores/ui'
 
 function readStoredUser() {
   const raw = localStorage.getItem('user')
@@ -29,11 +28,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data } = await api.post('/auth/login', { email, password })
       setSession(data.access_token, data.user)
-      useUiStore().pushToast({ title: 'Вы успешно вошли' })
       return data.user
     } catch (err) {
       error.value = err.response?.data?.detail || 'Не удалось войти'
-      useUiStore().pushToast({ title: error.value, type: 'error' })
       throw err
     } finally {
       loading.value = false
@@ -45,11 +42,9 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = ''
     try {
       const { data } = await api.post('/auth/register', payload)
-      useUiStore().pushToast({ title: 'Аккаунт создан', description: 'Теперь войдите в систему' })
       return data
     } catch (err) {
       error.value = err.response?.data?.detail || 'Не удалось зарегистрироваться'
-      useUiStore().pushToast({ title: error.value, type: 'error' })
       throw err
     } finally {
       loading.value = false

@@ -42,7 +42,7 @@ def get_current_user(
     except (jwt.PyJWTError, TypeError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Недействительный или истёкший токен',
+            detail='Invalid or expired token',
             headers={'WWW-Authenticate': 'Bearer'},
         )
 
@@ -50,7 +50,7 @@ def get_current_user(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Пользователь не найден',
+            detail='User not found',
             headers={'WWW-Authenticate': 'Bearer'},
         )
     return user
