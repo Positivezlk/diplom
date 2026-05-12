@@ -1,0 +1,35 @@
+body {
+  background: #f6f7fb;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.shadow-sm {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
+}
+
+.btn {
+  border-radius: 10px;
+}
+
+.task-card {
+  transition: all .2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.sortable-ghost {
+  opacity: 0.4;
+}
+
+.card.p-3.mb-3 {
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.9);
+}
